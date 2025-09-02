@@ -614,6 +614,11 @@ static void serializeDataflashReadReply(sbuf_t *dst, uint32_t address, const uin
 }
 #endif // USE_FLASHFS
 
+// It is expected to be normalized already.
+static int16_t encodeQuaternionComponent(float component) {
+    return (int16_t)roundf(component * 32767.0f);
+}
+
 /*
  * Returns true if the command was processd, false otherwise.
  * May set mspPostProcessFunc to a function to be called once the command has been processed
@@ -1326,6 +1331,16 @@ case MSP_NAME:
         sbufWriteU16(dst, attitude.values.pitch);
         sbufWriteU16(dst, DECIDEGREES_TO_DEGREES(attitude.values.yaw));
         break;
+
+    case MSP_QUATERNION: {
+        quaternion q;
+        getQuaternion(&q);
+        sbufWriteU16(dst, encodeQuaternionComponent(q.w));
+        sbufWriteU16(dst, encodeQuaternionComponent(q.x));
+        sbufWriteU16(dst, encodeQuaternionComponent(q.y));
+        sbufWriteU16(dst, encodeQuaternionComponent(q.z));
+        break;
+    }
 
     case MSP_ALTITUDE:
         sbufWriteU32(dst, getEstimatedAltitudeCm());
