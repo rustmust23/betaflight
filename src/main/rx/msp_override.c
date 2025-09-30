@@ -32,18 +32,22 @@ uint16_t rxMspOverrideReadRawRc(const rxRuntimeState_t *rxRuntimeState, const rx
 {
     uint16_t rxSample = (rxRuntimeState->rcReadRawFn)(rxRuntimeState, chan);
 
-    uint16_t overrideSample = rxMspReadRawRC(rxRuntimeState, chan);
-    // if 0 is read from the buffer we want center values and not 885 to be applied;
-    // 1499 is more explicit and clear in later debugging than 1500
-    if (overrideSample < rxConfig->rx_min_usec)
-        overrideSample = 1499;
-    else if (overrideSample > rxConfig->rx_max_usec)
-        overrideSample = rxConfig->rx_max_usec;
-
     bool override = (1 << chan) & rxConfig->msp_override_channels_mask;
 
     if (IS_RC_MODE_ACTIVE(BOXMSPOVERRIDE) && override) {
-        return overrideSample;
+        uint16_t overrideSample = rxMspReadRawRC(rxRuntimeState, chan);
+        if (overrideSample < rxConfig->rx_min_usec)
+            // if 0 is read from the buffer we want center values and not 885 to be applied;
+            // 1499 is more explicit and clear in later debugging than 1500
+            return 1499;
+        else if (overrideSample == rxConfig->rx_min_usec)
+            // 885 means ignore the override and read rx
+            return rxSample;
+        else if (overrideSample > rxConfig->rx_max_usec)
+            // clamp max
+            return rxConfig->rx_max_usec;
+        else 
+         return overrideSample;
     } else {
         return rxSample;
     }
