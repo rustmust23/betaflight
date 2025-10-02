@@ -140,15 +140,13 @@ STATIC_UNIT_TESTED vtxSettingsConfig_t vtxGetSettings(void)
 
 static bool vtxProcessBandAndChannel(vtxDevice_t *vtxDevice)
 {
-    if (!ARMING_FLAG(ARMED)) {
-        uint8_t vtxBand;
-        uint8_t vtxChan;
-        if (vtxCommonGetBandAndChannel(vtxDevice, &vtxBand, &vtxChan)) {
-            const vtxSettingsConfig_t settings = vtxGetSettings();
-            if (vtxBand != settings.band || vtxChan != settings.channel) {
-                vtxCommonSetBandAndChannel(vtxDevice, settings.band, settings.channel);
-                return true;
-            }
+    uint8_t vtxBand;
+    uint8_t vtxChan;
+    if (vtxCommonGetBandAndChannel(vtxDevice, &vtxBand, &vtxChan)) {
+        const vtxSettingsConfig_t settings = vtxGetSettings();
+        if (vtxBand != settings.band || vtxChan != settings.channel) {
+            vtxCommonSetBandAndChannel(vtxDevice, settings.band, settings.channel);
+            return true;
         }
     }
     return false;
